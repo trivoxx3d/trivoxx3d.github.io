@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trivoxx 3D · Estoque</title>
+<meta name="theme-color" content="#0D0A12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trivoxx 3D">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  html, body { margin: 0; height: 100%; background: #0D0A12; overflow: hidden; }
+  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; }
+  /* tela de carregamento enquanto o app acorda */
+  #carregando { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 14px; color: #A59CB3; font: 500 15px system-ui, sans-serif;
+    background: radial-gradient(40rem 30rem at 50% 30%, rgba(155,92,255,.18), transparent 60%), #0D0A12;
+    transition: opacity .4s; z-index: 2; }
+  #carregando img { width: 84px; height: 84px; border-radius: 20px; animation: pulsa 1.6s ease-in-out infinite; }
+  #carregando b { color: #F3EFF8; font-size: 20px; }
+  #carregando b span { color: #FF7A1A; }
+  #carregando a { color: #9B5CFF; font-size: 13px; }
+  @keyframes pulsa { 50% { transform: scale(.92); opacity: .75; } }
+</style>
+</head>
+<body>
+<div id="carregando">
+  <img src="icon-192.png" alt="">
+  <b>Trivoxx<span>3D</span></b>
+  <div>Abrindo o estoque...</div>
+  <a id="link" href="#" target="_blank" rel="noopener" hidden>Demorando? Abrir direto</a>
+</div>
+<script>
+  // Endereço do app no Streamlit (se o link mudar, troque só aqui)
+  const APP = "https://trivoxx-estoque-ntmqqsvdxrrcmqdmw7mitj.streamlit.app/";
+  const f = document.createElement("iframe");
+  f.allow = "clipboard-write; clipboard-read";
+  f.title = "Trivoxx 3D · Estoque";
+  document.body.appendChild(f);  // entra vazio primeiro (o "load" do about:blank não conta)
+  setTimeout(() => {
+    f.onload = () => {
+      const c = document.getElementById("carregando");
+      if (!c) return;
+      c.style.opacity = "0"; setTimeout(() => c.remove(), 450);
+    };
+    f.src = APP + "?embed=true&embed_options=dark_theme";
+  }, 50);
+  const l = document.getElementById("link");
+  l.href = APP;
+  setTimeout(() => { if (l.isConnected) l.hidden = false; }, 12000);
+</script>
+</body>
+</html>
