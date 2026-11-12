@@ -14,7 +14,10 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
   html, body { margin: 0; height: 100%; background: #0D0A12; overflow: hidden; }
-  iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; }
+  /* o iframe fica um pouco maior que a tela para esconder a moldura branca
+     e a barra "Built with Streamlit / Fullscreen" que o Streamlit coloca no modo incorporado */
+  iframe { position: fixed; top: -14px; left: -3px; width: calc(100% + 6px); height: calc(100% + 50px);
+    border: 0; background: #0D0A12; }
   /* tela de carregamento enquanto o app acorda */
   #carregando { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
     justify-content: center; gap: 14px; color: #A59CB3; font: 500 15px system-ui, sans-serif;
