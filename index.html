@@ -13,18 +13,21 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
-  html, body { margin: 0; height: 100%; background: #0D0A12; overflow: hidden; }
+  :root { --fundo: #0D0A12; --texto: #F3EFF8; --apagado: #A59CB3; --brilho: rgba(155,92,255,.18); }
+  body.claro { --fundo: #F7F5FB; --texto: #1A1424; --apagado: #6B6380; --brilho: rgba(124,58,237,.12); }
+  html, body { margin: 0; height: 100%; background: var(--fundo); overflow: hidden; }
   /* o iframe fica um pouco maior que a tela para esconder a moldura branca
      e a barra "Built with Streamlit / Fullscreen" que o Streamlit coloca no modo incorporado */
   iframe { position: fixed; top: -14px; left: -3px; width: calc(100% + 6px); height: calc(100% + 50px);
-    border: 0; background: #0D0A12; }
+    border: 0; background: var(--fundo); }
   /* tela de carregamento enquanto o app acorda */
   #carregando { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 14px; color: #A59CB3; font: 500 15px system-ui, sans-serif;
-    background: radial-gradient(40rem 30rem at 50% 30%, rgba(155,92,255,.18), transparent 60%), #0D0A12;
+    justify-content: center; gap: 14px; color: var(--apagado); font: 500 15px system-ui, sans-serif;
+    background: radial-gradient(40rem 30rem at 50% 30%, var(--brilho), transparent 60%), var(--fundo);
     transition: opacity .4s; z-index: 2; }
+  #carregando.saindo { opacity: 0; pointer-events: none; }
   #carregando img { width: 84px; height: 84px; border-radius: 20px; animation: pulsa 1.6s ease-in-out infinite; }
-  #carregando b { color: #F3EFF8; font-size: 20px; }
+  #carregando b { color: var(--texto); font-size: 20px; }
   #carregando b span { color: #FF7A1A; }
   #carregando a { color: #9B5CFF; font-size: 13px; }
   @keyframes pulsa { 50% { transform: scale(.92); opacity: .75; } }
@@ -34,27 +37,56 @@
 <div id="carregando">
   <img src="icon-192.png" alt="">
   <b>Trivoxx<span>3D</span></b>
-  <div>Abrindo o estoque...</div>
+  <div id="msg">Abrindo o estoque...</div>
   <a id="link" href="#" target="_blank" rel="noopener" hidden>Demorando? Abrir direto</a>
 </div>
 <script>
   // Endereço do app no Streamlit (se o link mudar, troque só aqui)
   const APP = "https://trivoxx-estoque-ntmqqsvdxrrcmqdmw7mitj.streamlit.app/";
+  const CHAVE_TEMA = "tv_tema";  // "Light" ou "Dark", escolhido no botão "Tema claro" do app
+
+  const lerTema = () => { try { return localStorage.getItem(CHAVE_TEMA); } catch (e) { return null; } };
+  const salvarTema = (t) => { try { localStorage.setItem(CHAVE_TEMA, t); } catch (e) {} };
+
+  function enderecoApp() {
+    const t = lerTema();
+    let u = APP + "?embed=true";
+    if (t === "Light") u += "&embed_options=light_theme";
+    else if (t === "Dark") u += "&embed_options=dark_theme";
+    return u;
+  }
+  function aplicarCores() {
+    const claro = lerTema() === "Light";
+    document.body.classList.toggle("claro", claro);
+    document.querySelector('meta[name="theme-color"]').content = claro ? "#F7F5FB" : "#0D0A12";
+  }
+
+  const c = document.getElementById("carregando");
   const f = document.createElement("iframe");
   f.allow = "clipboard-write; clipboard-read";
   f.title = "Trivoxx 3D · Estoque";
+  aplicarCores();
   document.body.appendChild(f);  // entra vazio primeiro (o "load" do about:blank não conta)
   setTimeout(() => {
-    f.onload = () => {
-      const c = document.getElementById("carregando");
-      if (!c) return;
-      c.style.opacity = "0"; setTimeout(() => c.remove(), 450);
-    };
-    f.src = APP + "?embed=true";
+    f.onload = () => c.classList.add("saindo");
+    f.src = enderecoApp();
   }, 50);
+
+  // o app avisa quando o botão "Tema claro" é trocado
+  window.addEventListener("message", (e) => {
+    const okOrigem = /\.streamlit\.app$/.test(e.origin) || e.origin.startsWith("http://localhost");
+    const t = e.data && e.data.tvTema;
+    if (!okOrigem || (t !== "Light" && t !== "Dark")) return;
+    salvarTema(t);
+    aplicarCores();
+    document.getElementById("msg").textContent = "Trocando o tema...";
+    c.classList.remove("saindo");
+    f.src = enderecoApp();
+  });
+
   const l = document.getElementById("link");
   l.href = APP;
-  setTimeout(() => { if (l.isConnected) l.hidden = false; }, 12000);
+  setTimeout(() => { if (!c.classList.contains("saindo")) l.hidden = false; }, 12000);
 </script>
 </body>
 </html>
